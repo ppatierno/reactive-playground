@@ -32,18 +32,31 @@ public class Application {
 
     public static void main(String[] args) {
 
-
+        create();
     }
 
     private static void create() {
 
+        // 0..N flows, no backpressure
         log.info("Observable");
         Observable.<Integer>create(s -> {
+
             s.onNext(1);
             s.onNext(2);
-            s.onComplete();
-        }).subscribe(System.out::println);
+            Random random = new Random();
+            int r = random.nextInt(10);
+            if (r < 5) {
+                s.onComplete();
+            } else {
+                s.onError(new Exception("value = " + r + " -> Error !!!"));
+            }
 
+        }).subscribe(
+                System.out::println,
+                t ->  System.out.println(t.getMessage()),
+                () -> System.out.println("Complete !!"));
+
+        // a flow of exactly 1 item or an error
         log.info("Single");
         Single.<Integer>create(s -> {
 
@@ -55,8 +68,11 @@ public class Application {
                 s.onError(new Exception("value = " + r + " -> Error !!!"));
             }
 
-        }).subscribe(System.out::println, t -> System.out.println(t.getMessage()));
+        }).subscribe(
+                System.out::println,
+                t -> System.out.println(t.getMessage()));
 
+        // a flow without items but only a completion or error signal
         log.info("Completable");
         Completable.create(s -> {
 
@@ -67,8 +83,12 @@ public class Application {
             } else {
                 s.onError(new Exception("value = " + r + " -> Error !!!"));
             }
-        }).subscribe(System.out::println, t -> System.out.println(t.getMessage()));
 
+        }).subscribe(
+                () -> System.out.println("Complete !!"),
+                t -> System.out.println(t.getMessage()));
+
+        // a flow with no items, exactly one item or an error
         log.info("Maybe");
         Maybe.<Integer>create(s -> {
 
@@ -81,6 +101,9 @@ public class Application {
             } else {
                 s.onError(new Exception("value = " + r + " -> Error !!!"));
             }
-        }).subscribe(System.out::println, t -> System.out.print(t.getMessage()));
+        }).subscribe(
+                System.out::println,
+                t -> System.out.print(t.getMessage()),
+                () -> System.out.println("Complete !!"));
     }
 }
