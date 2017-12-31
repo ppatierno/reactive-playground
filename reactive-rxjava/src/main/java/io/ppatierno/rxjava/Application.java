@@ -24,15 +24,78 @@ import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 public class Application {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        create();
+        //create();
+        //interval();
+        //timer();
+        //range();
+        //repeat();
+        start();
+    }
+
+    private static void range() {
+
+        Observable.<Integer>range(0, 10)
+                .subscribe(System.out::println);
+    }
+
+    private static void repeat() {
+
+        Observable.<Integer>just(1, 2, 3, 4, 5)
+                .repeat(2)
+                .subscribe(System.out::println);
+    }
+
+
+    private static String callableFunction() {
+        return "from a callableFunction";
+    }
+
+    private static void start() {
+
+        Observable.fromCallable(() -> callableFunction())
+                .subscribe(System.out::println);
+
+        Observable.<Integer>fromCallable(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return 10;
+            }
+        }).subscribe(System.out::println);
+    }
+
+    private static void interval() throws IOException {
+
+        System.out.println("Main: " + Thread.currentThread().getId());
+        Observable.<Integer>interval(1000, 1000,
+                TimeUnit.MILLISECONDS)
+                .subscribe(l -> {
+                    System.out.println("OnNext: " + Thread.currentThread().getId() + " value = " + l);
+                        });
+
+        System.in.read();
+    }
+
+    private static void timer() throws IOException {
+
+        System.out.println("Main: " + Thread.currentThread().getId());
+        Observable.<Integer>timer(1000,
+                TimeUnit.MILLISECONDS)
+                .subscribe(l -> {
+                    System.out.println("OnNext: " + Thread.currentThread().getId() + " value = " + l);
+                });
+
+        System.in.read();
     }
 
     private static void create() {
